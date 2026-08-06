@@ -1,0 +1,56 @@
+/* MovieCard.css */
+.movie-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.movie-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+}
+
+.movie-poster {
+  height: 100px;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+}
+
+.movie-info { padding: 10px; }
+
+.movie-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.movie-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.movie-genre { font-size: 11px; color: var(--text2); }
+.movie-rating { font-size: 11px; color: #f59e0b; }
+
+.badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.badge-hit { background: #d1fae5; color: #065f46; }
+.badge-ott { background: #dbeafe; color: #1e40af; }
+.badge-upcoming { background: #fef3c7; color: #92400e; }
+.badge-flop { background: #fee2e2; color: #991b1b; }

@@ -44,7 +44,7 @@
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  background: var(--accent);
   color: white;
   font-size: 16px;
   font-weight: 700;
@@ -89,6 +89,28 @@
   background: #ef4444;
   color: white;
 }
+
+/* Tabs */
+.stars-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.tab-btn {
+  padding: 10px 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover { border-color: var(--accent); color: var(--accent); }
+.tab-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
 
 /* Search */
 .stars-search {
@@ -137,7 +159,7 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  background: var(--accent);
   color: white;
   font-size: 20px;
   font-weight: 700;
@@ -186,12 +208,162 @@
   width: 100%;
 }
 
-.follow-btn:hover {
-  background: var(--accent);
-  color: white;
+.follow-btn:hover { background: var(--accent); color: white; }
+.follow-btn.following { background: var(--accent); color: white; }
+
+/* New faces section */
+.new-faces-header { margin-bottom: 20px; }
+
+.new-faces-subtitle {
+  font-size: 14px;
+  color: var(--text2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  line-height: 1.6;
 }
 
-.follow-btn.following {
+.new-faces-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+/* New face card */
+.new-face-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.new-face-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.new-face-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.new-face-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
   background: var(--accent);
   color: white;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.new-face-info { flex: 1; }
+
+.new-face-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.new-face-from {
+  font-size: 12px;
+  color: var(--accent);
+  margin-bottom: 2px;
+}
+
+.new-face-followers {
+  font-size: 11px;
+  color: var(--text2);
+}
+
+.new-face-emoji { font-size: 24px; }
+
+/* Movie details */
+.new-face-movie {
+  background: var(--surface2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.movie-detail-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text2);
+}
+
+.movie-detail-row strong { color: var(--text); }
+
+/* AI Prediction */
+.ai-prediction {
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.prediction-hit { background: rgba(70,211,105,0.15); border: 1px solid #46d369; }
+.prediction-average { background: rgba(245,166,35,0.15); border: 1px solid #f5a623; }
+.prediction-flop { background: rgba(229,9,20,0.15); border: 1px solid #e50914; }
+
+.prediction-label {
+  font-size: 11px;
+  color: var(--text2);
+  margin-bottom: 4px;
+}
+
+.prediction-result {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.prediction-bar-container {
+  height: 6px;
+  background: var(--surface2);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.prediction-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+.prediction-confidence {
+  font-size: 11px;
+  color: var(--text2);
+}
+
+/* News */
+.new-face-news {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  background: var(--surface2);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.new-face-news p {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.5;
+  margin: 0;
 }

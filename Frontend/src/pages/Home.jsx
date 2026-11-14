@@ -1,19 +1,19 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import Navbar from '../components/Navbar'
+import { getTrendingMoviesAPI } from '../services/api'
 import './Home.css'
+
+import TiltCard from '../components/TiltCard'
 
 const Home = () => {
   const { user } = useAuth()
+ 
+  const [trendingMovies, setTrendingMovies] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const trendingMovies = [
-    { id: 1, title: 'Stree 3', genre: 'Horror Comedy', rating: '8.2', emoji: '👻', badge: 'Hit' },
-    { id: 2, title: 'Pushpa 3', genre: 'Action', rating: '8.9', emoji: '🔥', badge: 'Hit' },
-    { id: 3, title: 'Lockup 2', genre: 'Reality', rating: '7.5', emoji: '🔒', badge: 'OTT' },
-    { id: 4, title: 'Bigg Boss 19', genre: 'Reality', rating: '6.8', emoji: '📺', badge: 'OTT' },
-    { id: 5, title: 'King', genre: 'Action', rating: '9.1', emoji: '👑', badge: 'Upcoming' },
-  ]
-
+  // Static followed stars
   const followedStars = [
     { id: 1, name: 'Shah Rukh Khan', initials: 'SRK', nextMovie: 'King', releaseDate: 'Aug 2026' },
     { id: 2, name: 'Deepika Padukone', initials: 'DP', nextMovie: 'Singham 3', releaseDate: 'Dec 2026' },
@@ -22,11 +22,35 @@ const Home = () => {
 
   const moods = ['😂 Funny', '😢 Emotional', '😱 Thriller', '💕 Romance', '⚡ Action', '👻 Horror']
 
+  // Fetch real trending movies from Flask → TMDB API
+  useEffect(() => {
+    const fetchTrending = async () => {
+      try {
+        const data = await getTrendingMoviesAPI()
+        if (data.success && data.movies.length > 0) {
+          setTrendingMovies(data.movies.slice(0, 5))
+        }
+      } catch (error) {
+        console.log('Using static data')
+        setTrendingMovies([
+          { id: 1, title: 'Stree 3', genre_ids: [], rating: 8.2, emoji: '👻', badge: 'Hit' },
+          { id: 2, title: 'Pushpa 3', genre_ids: [], rating: 8.9, emoji: '🔥', badge: 'Hit' },
+          { id: 3, title: 'King', genre_ids: [], rating: 9.1, emoji: '👑', badge: 'Upcoming' },
+        ])
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchTrending()
+  }, [])
+
   return (
     <div className="home-container">
+      
       <Navbar />
       <div className="home-body">
 
+        {/* Welcome banner */}
         <div className="welcome-banner">
           <div className="welcome-text">
             <h2>Welcome back, {user?.name?.split(' ')[0]}! 👋</h2>
@@ -38,6 +62,7 @@ const Home = () => {
           </div>
         </div>
 
+        {/* Stats row */}
         <div className="stats-row">
           <div className="stat-card">
             <span className="stat-icon">🎬</span>
@@ -57,28 +82,47 @@ const Home = () => {
           </div>
         </div>
 
+        {/* Trending movies - REAL DATA from TMDB! */}
         <div className="section">
           <div className="section-header">
-            <h3>🔥 Trending Now</h3>
+            <h3>🔥 Trending Now {!loading && <span style={{fontSize:'12px', color:'var(--accent)'}}>• Live from TMDB</span>}</h3>
             <Link to="/explore" className="see-all">See all</Link>
           </div>
-          <div className="movies-grid">
-            {trendingMovies.map(movie => (
-              <div key={movie.id} className="movie-card">
-                <div className="movie-poster">{movie.emoji}</div>
-                <div className="movie-info">
-                  <div className="movie-title">{movie.title}</div>
-                  <div className="movie-meta">
-                    <span className="movie-genre">{movie.genre}</span>
-                    <span className="movie-rating">⭐ {movie.rating}</span>
+
+          {loading ? (
+            <div style={{textAlign:'center', padding:'20px', color:'var(--text2)'}}>
+              Loading real trending movies... 🎬
+            </div>
+          ) : (
+            <div className="movies-grid">
+              {trendingMovies.map(movie => (
+                <TiltCard key={movie.id} className="movie-card">
+                  {/* Show real poster if available */}
+                  {movie.poster ? (
+                    <img
+                      src={movie.poster}
+                      alt={movie.title}
+                      className="movie-poster-img"
+                      onError={(e) => { e.target.style.display='none' }}
+                    />
+                  ) : (
+                    <div className="movie-poster">{movie.emoji || '🎬'}</div>
+                  )}
+                  <div className="movie-info">
+                    <div className="movie-title">{movie.title}</div>
+                    <div className="movie-meta">
+                      <span className="movie-genre">{movie.release_date?.split('-')[0] || 'New'}</span>
+                      <span className="movie-rating">⭐ {movie.rating}</span>
+                    </div>
+                    <span className="badge badge-hit">{movie.badge || 'Trending'}</span>
                   </div>
-                  <span className={`badge badge-${movie.badge.toLowerCase()}`}>{movie.badge}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+                </TiltCard>
+              ))}
+            </div>
+          )}
         </div>
 
+        {/* AI features row */}
         <div className="ai-row">
           <div className="ai-card">
             <h3>🎯 Mood Recommender</h3>
@@ -110,6 +154,7 @@ const Home = () => {
           </div>
         </div>
 
+        {/* Followed stars */}
         <div className="section">
           <div className="section-header">
             <h3>⭐ Your Followed Stars</h3>

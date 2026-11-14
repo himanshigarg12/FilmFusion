@@ -1,17 +1,24 @@
-// Signup.jsx - Signup page
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { signupAPI } from '../services/api'
-import './Login.css'
+import AuthLayout from '../components/AuthLayout'
+
+const getStrength = (pw) => {
+  let score = 0
+  if (pw.length >= 6) score++
+  if (pw.length >= 10) score++
+  if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++
+  if (/[0-9]/.test(pw) && /[^A-Za-z0-9]/.test(pw)) score++
+  return score // 0 to 4
+}
+const LABELS = ['Too short', 'Weak', 'Okay', 'Good', 'Strong']
 
 const Signup = () => {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
+    name: '', email: '', password: '', confirmPassword: ''
   })
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
@@ -21,14 +28,15 @@ const Signup = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
+  const strength = formData.password ? getStrength(formData.password) : 0
+  const matches = formData.confirmPassword && formData.password === formData.confirmPassword
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
-    // Check passwords match
-    if (formData.password !== formData.confirmPassword) {
-      return setError('Passwords do not match!')
-    }
+    if (formData.password.length < 6) return setError('Password must be at least 6 characters.')
+    if (formData.password !== formData.confirmPassword) return setError('Passwords do not match.')
 
     setLoading(true)
     try {
@@ -36,106 +44,72 @@ const Signup = () => {
       login(data.user, data.token)
       navigate('/')
     } catch (err) {
-      setError(err.response?.data?.message || 'Signup failed! Please try again.')
+      setError(err.response?.data?.message || 'Signup failed. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="auth-container">
-      {/* Left side - branding */}
-      <div className="auth-left">
-        <div className="auth-brand">
-          <div className="brand-icon">🎬</div>
-          <h1>FilmFusion</h1>
-          <p>Your AI-powered entertainment hub</p>
-        </div>
-        <div className="auth-features">
-          <div className="feature-item">
-            <span>🎯</span>
-            <p>AI movie recommendations based on your mood</p>
-          </div>
-          <div className="feature-item">
-            <span>💬</span>
-            <p>Analyse audience sentiment of any show</p>
-          </div>
-          <div className="feature-item">
-            <span>📊</span>
-            <p>Predict if a movie will be hit or flop</p>
-          </div>
-          <div className="feature-item">
-            <span>⭐</span>
-            <p>Follow your favourite Bollywood stars</p>
-          </div>
-        </div>
-      </div>
+    <AuthLayout>
+      <div className="auth2-card">
+        <h2>Create your account</h2>
+        <p className="auth2-sub">Join FilmFusion. It's free</p>
 
-      {/* Right side - signup form */}
-      <div className="auth-right">
-        <div className="auth-form-container">
-          <h2>Create account</h2>
-          <p className="auth-subtitle">Join FilmFusion today — it's free!</p>
+        {error && <div key={error} className="auth2-error">⚠ {error}</div>}
 
-          {error && <div className="auth-error">{error}</div>}
+        <form onSubmit={handleSubmit}>
+          <div className="auth2-field">
+            <input id="name" type="text" name="name" placeholder=" "
+              value={formData.name} onChange={handleChange} required />
+            <label htmlFor="name">Full name</label>
+          </div>
 
-          <form onSubmit={handleSubmit} className="auth-form">
-            <div className="form-group">
-              <label>Full name</label>
-              <input
-                type="text"
-                name="name"
-                placeholder="Enter your full name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Email address</label>
-              <input
-                type="email"
-                name="email"
-                placeholder="Enter your email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Password</label>
-              <input
-                type="password"
-                name="password"
-                placeholder="Minimum 6 characters"
-                value={formData.password}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="form-group">
-              <label>Confirm password</label>
-              <input
-                type="password"
-                name="confirmPassword"
-                placeholder="Re-enter your password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <button type="submit" className="auth-btn" disabled={loading}>
-              {loading ? 'Creating account...' : 'Create account'}
+          <div className="auth2-field">
+            <input id="email" type="email" name="email" placeholder=" "
+              value={formData.email} onChange={handleChange} required />
+            <label htmlFor="email">Email address</label>
+          </div>
+
+          <div className="auth2-field">
+            <input id="password" type={showPassword ? 'text' : 'password'} name="password"
+              placeholder=" " value={formData.password} onChange={handleChange} required />
+            <label htmlFor="password">Password</label>
+            <button type="button" className="auth2-eye"
+              onClick={() => setShowPassword(!showPassword)}>
+              {showPassword ? 'Hide' : 'Show'}
             </button>
-          </form>
+          </div>
 
-          <p className="auth-switch">
-            Already have an account?{' '}
-            <Link to="/login">Login here</Link>
-          </p>
-        </div>
+          {formData.password && (
+            <div className="auth2-strength">
+              <div className="auth2-strength-bars">
+                {[1, 2, 3, 4].map(n => (
+                  <span key={n} className={n <= strength ? `on s${strength}` : ''} />
+                ))}
+              </div>
+              <small>{LABELS[strength]}</small>
+            </div>
+          )}
+
+          <div className="auth2-field">
+            <input id="confirmPassword" type={showPassword ? 'text' : 'password'}
+              name="confirmPassword" placeholder=" "
+              value={formData.confirmPassword} onChange={handleChange} required />
+            <label htmlFor="confirmPassword">Confirm password</label>
+            {matches && <span className="auth2-tick">✓</span>}
+          </div>
+
+          <button type="submit" className="auth2-btn" disabled={loading}>
+            {loading ? <span className="auth2-spinner" /> : 'Create account'}
+          </button>
+        </form>
+
+        <p className="auth2-switch">
+          Already have an account? <Link to="/login">Login</Link>
+        </p>
       </div>
-    </div>
+    </AuthLayout>
   )
 }
 

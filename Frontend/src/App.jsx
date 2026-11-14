@@ -5,6 +5,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 import { AuthProvider } from './context/AuthContext'
 
+import { useState } from 'react'
+import Intro from './components/Intro'
+
 // Import all pages
 import Login from './pages/Login'
 import Signup from './pages/Signup'
@@ -81,8 +84,12 @@ function AppRoutes() {
 // Wrap everything with AuthProvider
 // So all pages can access user login state
 function App() {
+  // Starts as true on every fresh load/refresh, so the intro plays every time
+  const [showIntro, setShowIntro] = useState(true)
+
   return (
     <AuthProvider>
+      {showIntro && <Intro onFinish={() => setShowIntro(false)} />}
       <AppRoutes />
     </AuthProvider>
   )

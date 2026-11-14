@@ -1,84 +1,54 @@
-// Recommend.jsx - AI mood based recommendations
 import { useState } from 'react'
 import Navbar from '../components/Navbar'
 import MovieCard from '../components/MovieCard'
+import { getRecommendationsAPI } from '../services/api'
 import './Recommend.css'
 
 const Recommend = () => {
-  const [theme, setTheme] = useState('dark')
   const [selectedMood, setSelectedMood] = useState('')
   const [recommendations, setRecommendations] = useState([])
   const [loading, setLoading] = useState(false)
-
-  const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark')
+  const [error, setError] = useState('')
 
   const moods = [
-    { emoji: '😂', label: 'Funny', color: '#fef3c7' },
-    { emoji: '😢', label: 'Emotional', color: '#dbeafe' },
-    { emoji: '😱', label: 'Thriller', color: '#fee2e2' },
-    { emoji: '💕', label: 'Romance', color: '#fce7f3' },
-    { emoji: '⚡', label: 'Action', color: '#d1fae5' },
-    { emoji: '👻', label: 'Horror', color: '#ede9fe' },
-    { emoji: '🤣', label: 'Comedy', color: '#fef3c7' },
-    { emoji: '🎭', label: 'Drama', color: '#e0f2fe' },
+    { emoji: '😂', label: 'Funny' },
+    { emoji: '😢', label: 'Emotional' },
+    { emoji: '😱', label: 'Thriller' },
+    { emoji: '💕', label: 'Romance' },
+    { emoji: '⚡', label: 'Action' },
+    { emoji: '👻', label: 'Horror' },
+    { emoji: '🤣', label: 'Comedy' },
+    { emoji: '🎭', label: 'Drama' },
   ]
 
-  // Static recommendations — will connect to Flask ML later
-  const moodMovies = {
-    Funny: [
-      { id: 1, title: 'Stree 3', genre: 'Horror Comedy', rating: '8.2', emoji: '👻', badge: 'Hit' },
-      { id: 2, title: 'Fukrey 4', genre: 'Comedy', rating: '7.8', emoji: '😂', badge: 'Hit' },
-      { id: 3, title: 'Golmaal 6', genre: 'Comedy', rating: '7.5', emoji: '🤣', badge: 'Upcoming' },
-    ],
-    Action: [
-      { id: 1, title: 'Pushpa 3', genre: 'Action', rating: '8.9', emoji: '🔥', badge: 'Hit' },
-      { id: 2, title: 'King', genre: 'Action', rating: '9.1', emoji: '👑', badge: 'Upcoming' },
-      { id: 3, title: 'War 3', genre: 'Action', rating: '8.0', emoji: '💥', badge: 'Upcoming' },
-    ],
-    Romance: [
-      { id: 1, title: 'Ae Dil Hai Mushkil 2', genre: 'Romance', rating: '7.9', emoji: '💕', badge: 'Upcoming' },
-      { id: 2, title: 'Yeh Jawaani 3', genre: 'Romance', rating: '7.5', emoji: '❤️', badge: 'Hit' },
-    ],
-    Thriller: [
-      { id: 1, title: 'Mirzapur 4', genre: 'Crime Thriller', rating: '8.8', emoji: '🔫', badge: 'OTT' },
-      { id: 2, title: 'Sacred Games 3', genre: 'Thriller', rating: '8.5', emoji: '🕵️', badge: 'OTT' },
-    ],
-    Horror: [
-      { id: 1, title: 'Bhool Bhulaiyaa 4', genre: 'Horror', rating: '7.8', emoji: '👁️', badge: 'Upcoming' },
-      { id: 2, title: 'Stree 3', genre: 'Horror Comedy', rating: '8.2', emoji: '👻', badge: 'Hit' },
-    ],
-    Emotional: [
-      { id: 1, title: 'Ae Watan Mere Watan 2', genre: 'Drama', rating: '8.1', emoji: '🇮🇳', badge: 'OTT' },
-      { id: 2, title: 'Panchayat 4', genre: 'Drama', rating: '9.0', emoji: '🏘️', badge: 'OTT' },
-    ],
-    Comedy: [
-      { id: 1, title: 'Fukrey 4', genre: 'Comedy', rating: '7.8', emoji: '😂', badge: 'Hit' },
-      { id: 2, title: 'Golmaal 6', genre: 'Comedy', rating: '7.5', emoji: '🤣', badge: 'Upcoming' },
-    ],
-    Drama: [
-      { id: 1, title: 'Panchayat 4', genre: 'Drama', rating: '9.0', emoji: '🏘️', badge: 'OTT' },
-      { id: 2, title: 'Scam 3', genre: 'Drama', rating: '8.7', emoji: '📊', badge: 'OTT' },
-    ],
-  }
-
-  const handleMoodSelect = (mood) => {
+  const handleMoodSelect = async (mood) => {
     setSelectedMood(mood)
     setLoading(true)
+    setRecommendations([])
+    setError('')
 
-    // Simulate API call — later this calls Flask ML backend
-    setTimeout(() => {
-      setRecommendations(moodMovies[mood] || [])
+    try {
+      // Call real Flask ML API!
+      const data = await getRecommendationsAPI(mood)
+      if (data.success) {
+        setRecommendations(data.movies)
+      }
+    } catch (err) {
+      setError('Something went wrong. Please try again!')
+    } finally {
       setLoading(false)
-    }, 1000)
+    }
   }
 
   return (
-    <div className={`recommend-container ${theme}`}>
-      <Navbar theme={theme} toggleTheme={toggleTheme} />
-
+    <div className="recommend-container">
+      <Navbar />
       <div className="recommend-body">
         <h2 className="page-title">🎯 AI Movie Recommender</h2>
-        <p className="page-subtitle">Tell us your mood — our AI picks the perfect movie for you!</p>
+        <p className="page-subtitle">
+          Tell us your mood — our AI picks the perfect movie for you!
+          <span style={{color:'var(--accent)', marginLeft:'8px'}}>🤖 Powered by Cosine Similarity + K-Means</span>
+        </p>
 
         {/* Mood selection */}
         <div className="mood-section">
@@ -97,19 +67,39 @@ const Recommend = () => {
           </div>
         </div>
 
-        {/* Results */}
+        {/* Loading */}
         {loading && (
           <div className="loading-box">
-            🤖 AI is finding perfect movies for you...
+            🤖 AI is finding perfect movies for your {selectedMood} mood...
           </div>
         )}
 
+        {/* Error */}
+        {error && (
+          <div style={{color:'#ef4444', textAlign:'center', padding:'20px'}}>
+            {error}
+          </div>
+        )}
+
+        {/* Results */}
         {!loading && recommendations.length > 0 && (
           <div className="results-section">
-            <h3>Perfect picks for your {selectedMood} mood 🎬</h3>
+            <h3>
+              Perfect picks for your <span style={{color:'var(--accent)'}}>{selectedMood}</span> mood 🎬
+            </h3>
             <div className="recommend-grid">
-              {recommendations.map(movie => (
-                <MovieCard key={movie.id} movie={movie} />
+              {recommendations.map((movie, index) => (
+                <div key={index} className="rec-movie-card">
+                  <div className="rec-movie-poster">🎬</div>
+                  <div className="rec-movie-info">
+                    <div className="rec-movie-title">{movie.title}</div>
+                    <div className="rec-movie-genre">{movie.genre}</div>
+                    <div className="rec-movie-meta">
+                      <span className="rec-platform">{movie.platform}</span>
+                      <span className="rec-rating">⭐ {movie.rating}</span>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           </div>

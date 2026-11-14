@@ -1,6 +1,5 @@
 # news.py - News Route
 # Fetches real entertainment news from NewsAPI
-# Returns latest Bollywood, Hollywood, OTT news
 
 from flask import Blueprint, request, jsonify
 import requests
@@ -9,40 +8,39 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Create blueprint
 news_bp = Blueprint('news', __name__)
 
-# NewsAPI key from .env file
 NEWS_API_KEY = os.getenv('NEWS_API_KEY')
 NEWS_BASE_URL = 'https://newsapi.org/v2'
 
-# ==========================================
-# GET ENTERTAINMENT NEWS
-# ==========================================
 @news_bp.route('/news', methods=['GET'])
 def get_news():
     try:
-        category = request.args.get('category', 'entertainment')
-
         if not NEWS_API_KEY or NEWS_API_KEY == 'paste_your_key_here':
-            # Return static news if no API key
             return jsonify({
                 'success': True,
                 'articles': get_static_news(),
                 'source': 'static'
             })
 
-        # Call NewsAPI
         response = requests.get(
-            f'{NEWS_BASE_URL}/top-headlines',
+            f'{NEWS_BASE_URL}/everything',
             params={
                 'apiKey': NEWS_API_KEY,
-                'country': 'in',
-                'category': 'entertainment',
+                'q': 'Bollywood OR Hollywood OR Netflix OR OTT OR movie',
+                'language': 'en',
+                'sortBy': 'publishedAt',
                 'pageSize': 20
             }
         )
         data = response.json()
+
+        if data.get('status') != 'ok':
+            return jsonify({
+                'success': True,
+                'articles': get_static_news(),
+                'source': 'static (API error)'
+            })
 
         articles = []
         for article in data.get('articles', []):
@@ -68,12 +66,9 @@ def get_news():
         return jsonify({
             'success': True,
             'articles': get_static_news(),
-            'source': 'static (API error)'
+            'source': 'static (error)'
         })
 
-# ==========================================
-# GET BOLLYWOOD NEWS
-# ==========================================
 @news_bp.route('/news/bollywood', methods=['GET'])
 def get_bollywood_news():
     try:
@@ -88,7 +83,7 @@ def get_bollywood_news():
             f'{NEWS_BASE_URL}/everything',
             params={
                 'apiKey': NEWS_API_KEY,
-                'q': 'Bollywood OR Hindi movie OR Shah Rukh Khan OR Deepika',
+                'q': 'Bollywood OR Hindi movie OR Shah Rukh Khan OR Deepika OR Salman Khan',
                 'language': 'en',
                 'sortBy': 'publishedAt',
                 'pageSize': 10
@@ -122,13 +117,9 @@ def get_bollywood_news():
             'source': 'static'
         })
 
-# ==========================================
-# CATEGORIZE NEWS AUTOMATICALLY
-# ==========================================
 def categorize_news(title):
     title_lower = title.lower()
-
-    if any(word in title_lower for word in ['bollywood', 'hindi', 'srk', 'salman', 'deepika', 'alia']):
+    if any(word in title_lower for word in ['bollywood', 'hindi', 'srk', 'salman', 'deepika', 'alia', 'ranveer']):
         return 'Bollywood'
     elif any(word in title_lower for word in ['hollywood', 'marvel', 'disney', 'oscar', 'netflix original']):
         return 'Hollywood'
@@ -136,14 +127,11 @@ def categorize_news(title):
         return 'OTT'
     elif any(word in title_lower for word in ['bigg boss', 'kbc', 'reality', 'lockup']):
         return 'Reality Shows'
-    elif any(word in title_lower for word in ['award', 'filmfare', 'iifa', 'star screen']):
+    elif any(word in title_lower for word in ['award', 'filmfare', 'iifa']):
         return 'Awards'
     else:
         return 'Entertainment'
 
-# ==========================================
-# STATIC NEWS (fallback when no API key)
-# ==========================================
 def get_static_news():
     return [
         {
@@ -152,7 +140,7 @@ def get_static_news():
             'url': '#',
             'image': '',
             'source': 'FilmFusion',
-            'publishedAt': '2026-08-07',
+            'publishedAt': '2026-08-26',
             'category': 'Bollywood'
         },
         {
@@ -161,7 +149,7 @@ def get_static_news():
             'url': '#',
             'image': '',
             'source': 'FilmFusion',
-            'publishedAt': '2026-08-07',
+            'publishedAt': '2026-08-26',
             'category': 'OTT'
         },
         {
@@ -170,7 +158,7 @@ def get_static_news():
             'url': '#',
             'image': '',
             'source': 'FilmFusion',
-            'publishedAt': '2026-08-07',
+            'publishedAt': '2026-08-26',
             'category': 'Bollywood'
         },
         {
@@ -179,7 +167,7 @@ def get_static_news():
             'url': '#',
             'image': '',
             'source': 'FilmFusion',
-            'publishedAt': '2026-08-07',
+            'publishedAt': '2026-08-26',
             'category': 'Reality Shows'
         },
         {
@@ -188,16 +176,16 @@ def get_static_news():
             'url': '#',
             'image': '',
             'source': 'FilmFusion',
-            'publishedAt': '2026-08-07',
+            'publishedAt': '2026-08-26',
             'category': 'Awards'
         },
         {
             'title': 'Deepika Padukone signs 3 big projects for 2027',
-            'description': 'Deepika Padukone is all set with a packed 2027 lineup including action and drama films.',
+            'description': 'Deepika Padukone is all set with a packed 2027 lineup.',
             'url': '#',
             'image': '',
             'source': 'FilmFusion',
-            'publishedAt': '2026-08-07',
+            'publishedAt': '2026-08-26',
             'category': 'Bollywood'
         },
     ]

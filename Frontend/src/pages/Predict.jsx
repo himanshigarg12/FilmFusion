@@ -1,10 +1,9 @@
-// Predict.jsx - Hit or flop predictor
 import { useState } from 'react'
 import Navbar from '../components/Navbar'
+import { predictHitFlopAPI } from '../services/api'
 import './Predict.css'
 
 const Predict = () => {
-  const [theme, setTheme] = useState('dark')
   const [formData, setFormData] = useState({
     title: '',
     genre: '',
@@ -15,8 +14,7 @@ const Predict = () => {
   })
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
-
-  const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark')
+  const [error, setError] = useState('')
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -26,49 +24,60 @@ const Predict = () => {
     e.preventDefault()
     setLoading(true)
     setResult(null)
+    setError('')
 
-    // Static prediction — will connect to Flask ML later
-    setTimeout(() => {
-      const score = Math.random()
-      let prediction, emoji, color
-
-      if (score > 0.65) {
-        prediction = 'HIT 🔥'
-        emoji = '🏆'
-        color = 'hit'
-      } else if (score > 0.35) {
-        prediction = 'AVERAGE 😐'
-        emoji = '📊'
-        color = 'average'
-      } else {
-        prediction = 'FLOP 💀'
-        emoji = '📉'
-        color = 'flop'
+    try {
+      // Call real Flask ML API!
+      const data = await predictHitFlopAPI(formData)
+      if (data.success) {
+        setResult(data.result)
       }
-
-      setResult({
-        prediction,
-        emoji,
-        color,
-        confidence: Math.floor(score * 100),
-        reasons: [
-          `Genre "${formData.genre}" performs well in current market`,
-          `Budget range is ${score > 0.5 ? 'appropriate' : 'risky'} for this type`,
-          `${formData.platform} platform has ${score > 0.5 ? 'high' : 'moderate'} reach`,
-          `Cast popularity score: ${formData.castPopularity}/10`
-        ]
-      })
+    } catch (err) {
+      setError('Something went wrong. Please try again!')
+    } finally {
       setLoading(false)
-    }, 2000)
+    }
   }
 
-  return (
-    <div className={`predict-container ${theme}`}>
-      <Navbar theme={theme} toggleTheme={toggleTheme} />
+  const exampleMovies = [
+    { title: 'King', genre: 'Action', budget: '300', platform: 'Theatre', language: 'Hindi', castPopularity: '10' },
+    { title: 'Elvish Debut', genre: 'Comedy', budget: '25', platform: 'Theatre', language: 'Hindi', castPopularity: '6' },
+    { title: 'Pushpa 3', genre: 'Action', budget: '250', platform: 'Theatre', language: 'Telugu', castPopularity: '9' },
+  ]
 
+  return (
+    <div className="predict-container">
+      <Navbar />
       <div className="predict-body">
         <h2 className="page-title">📊 Hit or Flop Predictor</h2>
-        <p className="page-subtitle">Enter movie details — AI predicts if it will be a blockbuster or disaster!</p>
+        <p className="page-subtitle">
+          Enter movie details — AI predicts if it will be a blockbuster or disaster!
+          <span style={{color:'var(--accent)', marginLeft:'8px'}}>🤖 Powered by Random Forest</span>
+        </p>
+
+        {/* Example movies */}
+        <div style={{marginBottom:'20px'}}>
+          <p style={{fontSize:'13px', color:'var(--text2)', marginBottom:'8px'}}>💡 Try these examples:</p>
+          <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
+            {exampleMovies.map((movie, i) => (
+              <button
+                key={i}
+                onClick={() => setFormData(movie)}
+                style={{
+                  background:'var(--surface)',
+                  border:'1px solid var(--border)',
+                  borderRadius:'8px',
+                  padding:'6px 14px',
+                  fontSize:'12px',
+                  color:'var(--text2)',
+                  cursor:'pointer'
+                }}
+              >
+                {movie.title}
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div className="predict-layout">
           {/* Form */}
@@ -145,8 +154,11 @@ const Predict = () => {
                   required
                 />
               </div>
+
+              {error && <p style={{color:'#ef4444', fontSize:'13px'}}>{error}</p>}
+
               <button type="submit" className="predict-btn" disabled={loading}>
-                {loading ? '🤖 Predicting...' : '🔮 Predict Now'}
+                {loading ? '🤖 AI is predicting...' : '🔮 Predict Now'}
               </button>
             </form>
           </div>
@@ -156,14 +168,14 @@ const Predict = () => {
             {!result && !loading && (
               <div className="predict-placeholder">
                 <div className="placeholder-icon">🎬</div>
-                <p>Fill in the movie details and click Predict to see the AI prediction!</p>
+                <p>Fill in the movie details and click Predict!</p>
               </div>
             )}
 
             {loading && (
               <div className="predict-placeholder">
                 <div className="placeholder-icon">🤖</div>
-                <p>AI is analysing the movie details...</p>
+                <p>AI is analysing your movie details...</p>
               </div>
             )}
 
@@ -171,23 +183,19 @@ const Predict = () => {
               <div className={`result-box result-${result.color}`}>
                 <div className="result-emoji-big">{result.emoji}</div>
                 <h2 className="result-prediction">{result.prediction}</h2>
-                <p className="result-confidence">
-                  Confidence: {result.confidence}%
-                </p>
+                <p className="result-confidence">Confidence: {result.confidence}%</p>
                 <div className="confidence-bar">
-                  <div
-                    className="confidence-fill"
-                    style={{width: `${result.confidence}%`}}
-                  ></div>
+                  <div className="confidence-fill" style={{width:`${result.confidence}%`}}></div>
                 </div>
                 <div className="result-reasons">
                   <h4>Why this prediction?</h4>
-                  {result.reasons.map((reason, i) => (
-                    <div key={i} className="reason-item">
-                      ✓ {reason}
-                    </div>
+                  {result.reasons?.map((reason, i) => (
+                    <div key={i} className="reason-item">✓ {reason}</div>
                   ))}
                 </div>
+                <p style={{fontSize:'11px', color:'#6b7280', marginTop:'10px'}}>
+                  Model: {result.model_used}
+                </p>
               </div>
             )}
           </div>

@@ -367,3 +367,27 @@
   line-height: 1.5;
   margin: 0;
 }
+
+/* Real celebrity photos */
+.star-real-photo {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 12px;
+  display: block;
+}
+
+.star-photo {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.star-popularity {
+  font-size: 11px;
+  color: var(--text2);
+  margin-bottom: 12px;
+}
